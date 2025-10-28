@@ -16,9 +16,9 @@ declare -A VERSIONS=(
     [liblzma]="5.8.1"
     [libbz2]="1.0.8"
     [libgnutls]="3.8.10"
-    [libidn2]="2.3.7"
+    [libidn2]="2.3.8"
     [libpsl]="0.21.5"
-    [libnghttp2]="1.64.0"
+    [libnghttp2]="1.67.1"
     [libhsts]="0.1.0"
     [wget2]="2.2.0"
     [nettle]="3.10.2"
@@ -27,6 +27,8 @@ declare -A VERSIONS=(
     [gpgme]="2.0.1"
     [libtasn1]="4.20.0"
     [libffi]="3.5.2"
+    [libevent]="2.1.12"
+    [libunbound]="1.24.1"
 )
 
 # --- Helper functions ---
@@ -111,9 +113,18 @@ if [[ ! -f "${PREFIX}/lib/libbz2.a" ]]; then
 fi
 
 # libidn2
+# https://mirror.truenetwork.ru/gnu/libidn/libidn2-2.3.8.tar.gz
 if [[ ! -f "${PREFIX}/lib/libidn2.dylib" ]]; then
-    download_and_extract "libidn/libidn2" "${VERSIONS[libidn2]}" "libidn2"
-    build_autotools_project "libidn2" "${VERSIONS[libidn2]}"
+    echo "Downloading libidn2 ${VERSIONS[libidn2]}..."
+    curl -# -L -o "libidn2-${VERSIONS[libidn2]}.tar.gz" "https://mirror.truenetwork.ru/gnu/libidn/libidn2-${VERSIONS[libidn2]}.tar.gz"
+
+    download_and_extract "rockdaboot/libidn2" "${VERSIONS[libidn2]}" "libidn2"
+    cd "libidn2-${VERSIONS[libidn2]}"
+    echo "Building libidn2..."
+    ./configure --prefix="${PREFIX}"
+    make -j"${CPU_COUNT}"
+    make install
+    cd ..
 fi
 
 # libpsl
@@ -265,6 +276,47 @@ if [[ ! -f "${PREFIX}/lib/libgpgme.dylib" ]]; then
     cd "gpgme-${VERSIONS[gpgme]}"
     echo "Building gpgme..."
     ./configure --prefix="${PREFIX}"
+    make -j"${CPU_COUNT}"
+    make install
+    cd ..
+fi
+
+# libevent
+# https://github.com/libevent/libevent/releases/download/release-2.1.12-stable/libevent-2.1.12-stable.tar.gz
+
+if [[ ! -f "${PREFIX}/lib/libevent.dylib" ]]; then
+    echo "Downloading libevent ${VERSIONS[libevent]}..."
+    curl -# -L -o "libevent-${VERSIONS[libevent]}-stable.tar.gz" "https://github.com/libevent/libevent/releases/download/release-${VERSIONS[libevent]}-stable/libevent-${VERSIONS[libevent]}-stable.tar.gz"
+
+    echo "Extracting libevent-${VERSIONS[libevent]}..."
+    tar -xzf "libevent-${VERSIONS[libevent]}-stable.tar.gz"
+
+    cd "libevent-${VERSIONS[libevent]}-stable"
+    echo "Building libevent..."
+    ./configure --prefix="${PREFIX}"
+    make -j"${CPU_COUNT}"
+    make install
+    cd ..
+fi
+
+# libunbound
+# https://nlnetlabs.nl/downloads/unbound/unbound-1.24.1.tar.gz
+
+if [[ ! -f "${PREFIX}/lib/libunbound.dylib" ]]; then
+    echo "Downloading libunbound ${VERSIONS[libunbound]}..."
+    curl -# -L -o "unbound-${VERSIONS[libunbound]}.tar.gz" "https://nlnetlabs.nl/downloads/unbound/unbound-${VERSIONS[libunbound]}.tar.gz"
+
+    echo "Extracting unbound-${VERSIONS[libunbound]}..."
+    tar -xzf "unbound-${VERSIONS[libunbound]}.tar.gz"
+
+    cd "unbound-${VERSIONS[libunbound]}"
+    echo "Building unbound..."
+    ./configure --prefix="${PREFIX}" \
+        --with-ssl=$PREFIX \
+        --with-libnghttp2=$PREFIX \
+        --with-libexpat=$PREFIX \
+        --with-libevent=$PREFIX
+
     make -j"${CPU_COUNT}"
     make install
     cd ..
