@@ -198,6 +198,9 @@ fi
 # p11-kit
 # https://github.com/p11-glue/p11-kit/releases/download/0.25.10/p11-kit-0.25.10.tar.xz
 
+# gpgme
+# https://www.gnupg.org/ftp/gcrypt/gpgme/gpgme-2.0.1.tar.bz2
+
 # libgnutls (requires nettle, but we assume it's available via Xcode/macOS)
 # If nettle isn't available, you may need to build it separately
 if [[ ! -f "${PREFIX}/lib/libgnutls.dylib" ]]; then
