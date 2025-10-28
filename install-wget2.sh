@@ -23,6 +23,10 @@ declare -A VERSIONS=(
     [wget2]="2.2.0"
     [nettle]="3.10.2"
     [gmplib]="6.3.0"
+    [p11_kit]="0.25.10"
+    [gpgme]="2.0.1"
+    [libtasn1]="4.20.0"
+    [libffi]="3.5.2"
 )
 
 # --- Helper functions ---
@@ -195,11 +199,76 @@ if [[ ! -f "${PREFIX}/lib/libnettle.dylib" ]]; then
     cd ..
 fi
 
+# libtasn1
+# https://mirror.truenetwork.ru/gnu/libtasn1/libtasn1-4.20.0.tar.gz
+
+if [[ ! -f "${PREFIX}/lib/libtasn1.dylib" ]]; then
+    echo "Downloading libtasn1 ${VERSIONS[libtasn1]}..."
+    curl -# -L -o "libtasn1-${VERSIONS[libtasn1]}.tar.gz" "https://mirror.truenetwork.ru/gnu/libtasn1/libtasn1-${VERSIONS[libtasn1]}.tar.gz"
+
+    echo "Extracting libtasn1-${VERSIONS[libtasn1]}..."
+    tar -xzf "libtasn1-${VERSIONS[libtasn1]}.tar.gz"
+
+    cd "libtasn1-${VERSIONS[libtasn1]}"
+    echo "Building libtasn1..."
+    ./configure --prefix="${PREFIX}"
+    make -j"${CPU_COUNT}"
+    make install
+    cd ..
+fi
+
+# libffi
+# https://github.com/libffi/libffi/releases/download/v3.5.2/libffi-3.5.2.tar.gz
+
+if [[ ! -f "${PREFIX}/lib/libffi.dylib" ]]; then
+    echo "Downloading libffi ${VERSIONS[libffi]}..."
+    curl -# -L -o "libffi-${VERSIONS[libffi]}.tar.gz" "https://github.com/libffi/libffi/releases/download/v${VERSIONS[libffi]}/libffi-${VERSIONS[libffi]}.tar.gz"
+
+    echo "Extracting libffi-${VERSIONS[libffi]}..."
+    tar -xzf "libffi-${VERSIONS[libffi]}.tar.gz"
+
+    cd "libffi-${VERSIONS[libffi]}"
+    echo "Building libffi..."
+    ./configure --prefix="${PREFIX}"
+    make -j"${CPU_COUNT}"
+    make install
+    cd ..
+fi
+
 # p11-kit
 # https://github.com/p11-glue/p11-kit/releases/download/0.25.10/p11-kit-0.25.10.tar.xz
+if [[ ! -f "${PREFIX}/lib/libp11-kit.dylib" ]]; then
+    echo "Downloading p11-kit ${VERSIONS[p11_kit]}..."
+    curl -# -L -o "p11-kit-${VERSIONS[p11_kit]}.tar.xz" "https://github.com/p11-glue/p11-kit/releases/download/${VERSIONS[p11_kit]}/p11-kit-${VERSIONS[p11_kit]}.tar.xz"
+
+    echo "Extracting p11-kit-${VERSIONS[p11_kit]}..."
+    tar -xJf "p11-kit-${VERSIONS[p11_kit]}.tar.xz"
+
+    cd "p11-kit-${VERSIONS[p11_kit]}"
+    echo "Building p11-kit..."
+    ./configure --prefix="${PREFIX}" --with-trust-paths=$HOME/local/etc/ssl/certs
+    make -j"${CPU_COUNT}"
+    make install
+    cd ..
+fi
 
 # gpgme
 # https://www.gnupg.org/ftp/gcrypt/gpgme/gpgme-2.0.1.tar.bz2
+
+if [[ ! -f "${PREFIX}/lib/libgpgme.dylib" ]]; then
+    echo "Downloading gpgme ${VERSIONS[gpgme]}..."
+    curl -# -L -o "gpgme-${VERSIONS[gpgme]}.tar.bz2" "https://www.gnupg.org/ftp/gcrypt/gpgme/gpgme-${VERSIONS[gpgme]}.tar.bz2"
+
+    echo "Extracting gpgme-${VERSIONS[gpgme]}..."
+    tar -xjf "gpgme-${VERSIONS[gpgme]}.tar.bz2"
+
+    cd "gpgme-${VERSIONS[gpgme]}"
+    echo "Building gpgme..."
+    ./configure --prefix="${PREFIX}"
+    make -j"${CPU_COUNT}"
+    make install
+    cd ..
+fi
 
 # libgnutls (requires nettle, but we assume it's available via Xcode/macOS)
 # If nettle isn't available, you may need to build it separately
