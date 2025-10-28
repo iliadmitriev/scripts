@@ -364,7 +364,8 @@ if [[ ! -f "${PREFIX}/bin/wget2" ]]; then
         --with-gnutls \
         --with-libidn2 \
         --with-libpsl \
-        --with-nghttp2
+        --with-nghttp2 \
+        --with-libintl-prefix="${PREFIX}"
 
     make -j"${CPU_COUNT}"
     make install
